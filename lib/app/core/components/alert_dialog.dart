@@ -3,8 +3,6 @@ import "package:flutter/material.dart";
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:vitrine_ufma/app/core/components/svg_asset.dart';
 import 'package:vitrine_ufma/app/core/constants/colors.dart';
-import 'package:vitrine_ufma/app/core/components/vlibras_clickable_text.dart';
-import 'package:universal_platform/universal_platform.dart';
 
 class CustomAlertDialog extends StatelessWidget {
   final String title;
@@ -66,18 +64,6 @@ class CustomAlertDialog extends StatelessWidget {
                                   SizedBox(
                                     height: (10),
                                   ),
-                                  // Use VLibras hoverable text on web, regular text on other platforms
-                                  UniversalPlatform.isWeb ? 
-                                  VLibrasClickableText(
-                                    "Atenção!",
-                                    style: TextStyle(
-                                      color: AppColors.black,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 18,
-                                    ),
-                                    showIcon: false,
-                                    tooltip: 'Passe o mouse para traduzir em Libras',
-                                  ) :
                                   Text(
                                     "Atenção!",
                                     style: TextStyle(
@@ -89,21 +75,8 @@ class CustomAlertDialog extends StatelessWidget {
                                   SizedBox(
                                     height: (15),
                                   ),
-                                  // Use VLibras hoverable text on web, regular text on other platforms
-                                  UniversalPlatform.isWeb ? 
-                                  VLibrasClickableText(
-                                    title,
-                                    style: TextStyle(
-                                      color: AppColors.black,
-                                      fontWeight: FontWeight.normal,
-                                      fontSize: 18,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                    showIcon: false,
-                                    tooltip: 'Passe o mouse para traduzir em Libras',
-                                  ) :
                                   Text(
-                                    title, //'Você tem certeza que deseja sair?',
+                                    title, //"Você tem certeza que deseja sair?",
                                     textAlign: TextAlign.center,
                                     style: TextStyle(
                                       color: AppColors.black,
@@ -137,18 +110,7 @@ class CustomAlertDialog extends StatelessWidget {
                                         Modular.to.pop(true);
                                       },
                                       child: Center(
-                                        child: UniversalPlatform.isWeb ? 
-                                        VLibrasClickableText(
-                                          "Sim",
-                                          style: TextStyle(
-                                            color: AppColors.black,
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                          showIcon: false,
-                                          tooltip: 'Passe o mouse para traduzir em Libras',
-                                        ) :
-                                        Text(
+                                        child: Text(
                                           "Sim",
                                           style: TextStyle(
                                             color: AppColors.black,
@@ -170,18 +132,7 @@ class CustomAlertDialog extends StatelessWidget {
                                         Modular.to.pop(false);
                                       },
                                       child: Center(
-                                        child: UniversalPlatform.isWeb ? 
-                                        VLibrasClickableText(
-                                          "Não",
-                                          style: TextStyle(
-                                            color: AppColors.black,
-                                            fontWeight: FontWeight.bold,
-                                            fontSize: 16,
-                                          ),
-                                          showIcon: false,
-                                          tooltip: 'Passe o mouse para traduzir em Libras',
-                                        ) :
-                                        Text(
+                                        child: Text(
                                           "Não",
                                           style: TextStyle(
                                             color: AppColors.black,

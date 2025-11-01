@@ -45,15 +45,15 @@ class VLibrasClickableText extends StatelessWidget {
     }
 
     return Tooltip(
-      message: tooltip ?? 'Passe o mouse para traduzir em Libras',
-      child: MouseRegion(
-        onEnter: (event) => _handleHover(),
+      message: tooltip ?? 'Clique para traduzir em Libras',
+      child: InkWell(
+        onTap: () => _handleTap(),
+        borderRadius: BorderRadius.circular(4),
+        highlightColor: highlightColor ?? 
+                       Theme.of(context).primaryColor.withOpacity(0.1),
+        splashColor: Theme.of(context).primaryColor.withOpacity(0.2),
         child: Container(
           padding: padding ?? EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-            color: Colors.transparent,
-          ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.center,
@@ -83,7 +83,7 @@ class VLibrasClickableText extends StatelessWidget {
     );
   }
 
-  void _handleHover() {
+  void _handleTap() {
     try {
       if (VLibrasHelper.isAvailable) {
         VLibrasHelper.activateAndTranslate(text);
@@ -92,7 +92,7 @@ class VLibrasClickableText extends StatelessWidget {
         VLibrasHelper.createTranslationArea(text);
       }
     } catch (e) {
-      print('Erro ao processar hover para VLibras: $e');
+      print('Erro ao processar clique para VLibras: $e');
     }
   }
 }
@@ -113,7 +113,7 @@ class VLibrasClickableWrapper extends StatelessWidget {
     this.padding,
     this.highlightColor,
     this.tooltip,
-    this.showFeedback = false, // Changed default to false to disable notifications
+    this.showFeedback = true,
   }) : super(key: key);
 
   @override
@@ -123,63 +123,60 @@ class VLibrasClickableWrapper extends StatelessWidget {
     }
 
     return Tooltip(
-      message: tooltip ?? 'Passe o mouse para traduzir em Libras',
-      child: MouseRegion(
-        onEnter: (event) => _handleHover(context),
+      message: tooltip ?? 'Clique para traduzir em Libras',
+      child: InkWell(
+        onTap: () => _handleTap(context),
+        borderRadius: BorderRadius.circular(4),
+        highlightColor: highlightColor ?? 
+                       Theme.of(context).primaryColor.withOpacity(0.1),
+        splashColor: Theme.of(context).primaryColor.withOpacity(0.2),
         child: Container(
           padding: padding,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-            color: Colors.transparent,
-          ),
           child: child,
         ),
       ),
     );
   }
 
-  void _handleHover(BuildContext context) {
+  void _handleTap(BuildContext context) {
     try {
       if (VLibrasHelper.isAvailable) {
         VLibrasHelper.activateAndTranslate(textToTranslate);
         
-        // Removed the SnackBar notifications to stop notifying when VLibras is available
-        // if (showFeedback) {
-        //   ScaffoldMessenger.of(context).showSnackBar(
-        //     SnackBar(
-        //       content: Text('Texto enviado para tradução em Libras'),
-        //       duration: Duration(seconds: 2),
-        //       backgroundColor: Colors.blue,
-        //     ),
-        //   );
-        // }
+        if (showFeedback) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Texto enviado para tradução em Libras'),
+              duration: Duration(seconds: 2),
+              backgroundColor: Colors.blue,
+            ),
+          );
+        }
       } else {
         VLibrasHelper.createTranslationArea(textToTranslate);
         
-        // Removed the SnackBar notifications for when VLibras is not available
-        // if (showFeedback) {
-        //   ScaffoldMessenger.of(context).showSnackBar(
-        //     SnackBar(
-        //       content: Text('VLibras não disponível'),
-        //       duration: Duration(seconds: 2),
-        //       backgroundColor: Colors.orange,
-        //     ),
-        //   );
-        // }
+        if (showFeedback) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('VLibras não disponível'),
+              duration: Duration(seconds: 2),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
       }
     } catch (e) {
-      print('Erro ao processar hover para VLibras: $e');
+      print('Erro ao processar clique para VLibras: $e');
       
-      // Removed error notifications
-      // if (showFeedback) {
-      //   ScaffoldMessenger.of(context).showSnackBar(
-      //     SnackBar(
-      //       content: Text('Erro ao enviar para VLibras'),
-      //       duration: Duration(seconds: 2),
-      //       backgroundColor: Colors.red,
-      //     ),
-      //   );
-      // }
+      if (showFeedback) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erro ao enviar para VLibras'),
+            duration: Duration(seconds: 2),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 }
@@ -197,7 +194,7 @@ mixin VLibrasPageMixin<T extends StatefulWidget> on State<T> {
     }
   }
 
-  /// Traduz texto específico (pode ser acionado por hover ou clique)
+  /// Traduz texto específico
   void translateText(String text) {
     if (UniversalPlatform.isWeb) {
       VLibrasHelper.activateAndTranslate(text);

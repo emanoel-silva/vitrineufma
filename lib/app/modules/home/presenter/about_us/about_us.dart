@@ -5,7 +5,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:vitrine_ufma/app/core/components/footer.dart';
 import 'package:vitrine_ufma/app/core/components/image_asset.dart';
 import 'package:vitrine_ufma/app/core/components/text.dart';
-import 'package:vitrine_ufma/app/core/components/enhanced_keyboard_navigation.dart';
 import 'package:vitrine_ufma/app/core/constants/colors.dart';
 import 'package:vitrine_ufma/app/core/constants/const.dart';
 import 'package:vitrine_ufma/app/core/constants/fonts_sizes.dart';
@@ -27,7 +26,7 @@ class AboutUsPage extends StatelessWidget {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
       backgroundColor: AppColors.backgroundGrey,
-      body: EnhancedKeyboardNavigation(
+      body: SingleChildScrollView(
         child: Column(
           children: [
             Padding(
@@ -373,8 +372,8 @@ class AboutUsPage extends StatelessWidget {
                     ),
                     InkWell(
                       onTap: () async {
-                        if (!await launchUrl(Uri.parse(
-                            'https://www.instagram.com/ufma_dib/'))) {
+                        if (!await launchUrl(
+                            Uri.parse('https://www.instagram.com/ufma_dib/'))) {
                           throw Exception('Could not launch');
                         }
                         // https://www.instagram.com/bibliotecapinheiro/
@@ -451,13 +450,22 @@ class AboutUsPage extends StatelessWidget {
                       fontWeight: 'bold',
                     ),
                     const SizedBox(height: 10),
-                    SizedBox(
-                        width: 400,
-                        height: 200,
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: SizedBox(
+                        width: isWeb ? width * 0.8 : width - (AppConst.sidePadding * 2),
+                        height: isWeb ? 400 : 300,
                         child: PanoramaViewer(
+                          sensitivity: 1.5,
+                          animSpeed: 1.0,
+                          sensorControl: SensorControl.orientation,
                           child: Image.asset(
-                              'assets/images/example-ps-scaled.jpg'),
-                        ))
+                            'assets/images/example-ps-scaled.jpg',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                    )
                     // //https://maps.app.goo.gl/y4XZ2TXUTLzpcLJBA
                     // const AppText(
                     //   textAlign: TextAlign.justify,

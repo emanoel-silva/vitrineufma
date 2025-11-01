@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_mobx/flutter_mobx.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:vitrine_ufma/app/core/components/book_card.dart';
@@ -21,9 +20,6 @@ class HomeBooksPage extends StatefulWidget {
 }
 
 class _HomeBooksPageState extends State<HomeBooksPage> {
-  final ScrollController _scrollController = ScrollController();
-  final FocusNode _focusNode = FocusNode();
-
   @override
   void initState() {
     super.initState();
@@ -37,93 +33,25 @@ class _HomeBooksPageState extends State<HomeBooksPage> {
       widget.store.fetchRelatedBooks('Romance');
       widget.store.fetchRelatedBooks('Ciências');
     });
-    
-    // Request focus for keyboard navigation
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _focusNode.requestFocus();
-    });
-  }
-
-  @override
-  void dispose() {
-    _scrollController.dispose();
-    _focusNode.dispose();
-    super.dispose();
-  }
-
-  void _handleKeyEvent(RawKeyEvent event) {
-    if (event is RawKeyDownEvent) {
-      // Handle arrow key events for scrolling
-      if (event.logicalKey == LogicalKeyboardKey.arrowUp) {
-        // Scroll up by 100 pixels
-        _scrollController.animateTo(
-          _scrollController.offset - 100,
-          duration: const Duration(milliseconds: 100),
-          curve: Curves.linear,
-        );
-      } else if (event.logicalKey == LogicalKeyboardKey.arrowDown) {
-        // Scroll down by 100 pixels
-        _scrollController.animateTo(
-          _scrollController.offset + 100,
-          duration: const Duration(milliseconds: 100),
-          curve: Curves.linear,
-        );
-      } else if (event.logicalKey == LogicalKeyboardKey.pageUp) {
-        // Page up - scroll up by half the screen height
-        final screenHeight = MediaQuery.of(context).size.height;
-        _scrollController.animateTo(
-          _scrollController.offset - screenHeight * 0.8,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-        );
-      } else if (event.logicalKey == LogicalKeyboardKey.pageDown) {
-        // Page down - scroll down by half the screen height
-        final screenHeight = MediaQuery.of(context).size.height;
-        _scrollController.animateTo(
-          _scrollController.offset + screenHeight * 0.8,
-          duration: const Duration(milliseconds: 200),
-          curve: Curves.easeInOut,
-        );
-      } else if (event.logicalKey == LogicalKeyboardKey.home) {
-        // Home key - scroll to top
-        _scrollController.animateTo(
-          0,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      } else if (event.logicalKey == LogicalKeyboardKey.end) {
-        // End key - scroll to bottom
-        _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
-          duration: const Duration(milliseconds: 300),
-          curve: Curves.easeInOut,
-        );
-      }
-    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return RawKeyboardListener(
-      focusNode: _focusNode,
-      onKey: _handleKeyEvent,
-      child: SingleChildScrollView(
-        controller: _scrollController,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            SearchModal(
-            ),
-            _mainContent(),
-            _mostAccessedMaterials(),
-            _topRatedMaterials(),
-            //LISTAS DE LIVROS RELACIONADOS
-            _relatedBooksSection('Literatura'),
-            _relatedBooksSection('Ficção'),
-            _relatedBooksSection('Romance'),
-            _relatedBooksSection('Ciências'),
-          ],
-        ),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SearchModal(
+          ),
+          _mainContent(),
+          _mostAccessedMaterials(),
+          _topRatedMaterials(),
+          //LISTAS DE LIVROS RELACIONADOS
+          _relatedBooksSection('Literatura'),
+          _relatedBooksSection('Ficção'),
+          _relatedBooksSection('Romance'),
+          _relatedBooksSection('Ciências'),
+        ],
       ),
     );
   }
@@ -268,11 +196,10 @@ class _HomeBooksPageState extends State<HomeBooksPage> {
 
   Widget _mostAccessedMaterials() {
     double width = MediaQuery.of(context).size.width;
-    double height = MediaQuery.of(context).size.height;
     return Observer(
       builder: (_) {
-        //mostra o loading
-        if (widget.store.loading) {
+        //mostra o loading especifico dos materiais mais acessados
+        if (widget.store.isLoadingMostAccessedMaterials) {
           return SizedBox(
             height: 500,
             width: width,
@@ -284,6 +211,11 @@ class _HomeBooksPageState extends State<HomeBooksPage> {
           );
         }
 
+        // Se não está carregando e a lista está vazia, não mostra nada
+        if (widget.store.mostAccessedMaterials.isEmpty) {
+          return const SizedBox();
+        }
+
         return Center(
           child: Container(
             width: AppConst.maxContainerWidth,
@@ -291,43 +223,35 @@ class _HomeBooksPageState extends State<HomeBooksPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (widget.store.mostAccessedMaterials.isNotEmpty)
-                  AppText(
-                    text: 'Materiais mais acessados',
-                    fontSize: 18,
-                    fontWeight: 'bold',
-                  ),
-                if (widget.store.mostAccessedMaterials.isNotEmpty)
-                  const SizedBox(
-                    height: 40,
-                  ),
+                AppText(
+                  text: 'Materiais mais acessados',
+                  fontSize: 18,
+                  fontWeight: 'bold',
+                ),
+                const SizedBox(
+                  height: 40,
+                ),
                 SizedBox(
                   height: 300,
-                  child: Observer(builder: (context) {
-                    if (widget.store.mostAccessedMaterials.isEmpty) {
-                      return const SizedBox();
-                    }
-                    return ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      controller: widget.store.scrollController[0],
-                      itemCount: widget.store.mostAccessedMaterials.length,
-                      itemBuilder: (context, index) {
-                        var book = widget.store.mostAccessedMaterials[index];
-                        return InkWell(
-                            hoverColor: Colors.transparent,
-                            focusColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            onTap: () {
-                              widget.store.setSelectedBook(book);
-                              print("Book: ${book.title}");
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: widget.store.mostAccessedMaterials.length,
+                    itemBuilder: (context, index) {
+                      var book = widget.store.mostAccessedMaterials[index];
+                      return InkWell(
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          onTap: () {
+                            widget.store.setSelectedBook(book);
+                            print("Book: ${book.title}");
 
-                              Modular.to.pushNamed('/home/book/${book.id}',
-                                  arguments: book);
-                            },
-                            child: BookCard(book: book));
-                      },
-                    );
-                  }),
+                            Modular.to.pushNamed('/home/book/${book.id}',
+                                arguments: book);
+                          },
+                          child: BookCard(book: book));
+                    },
+                  ),
                 ),
                 const SizedBox(
                   height: 20,
@@ -339,8 +263,6 @@ class _HomeBooksPageState extends State<HomeBooksPage> {
             ),
           ),
         );
-
-        // return const SizedBox();
       },
     );
   }
@@ -349,8 +271,8 @@ class _HomeBooksPageState extends State<HomeBooksPage> {
     double width = MediaQuery.of(context).size.width;
     return Observer(
       builder: (_) {
-        //mostra o loading
-        if (widget.store.loading) {
+        //mostra o loading especifico dos materiais mais bem avaliados
+        if (widget.store.isLoadingTopRatedMaterials) {
           return SizedBox(
             height: 500,
             width: width,
@@ -362,6 +284,11 @@ class _HomeBooksPageState extends State<HomeBooksPage> {
           );
         }
 
+        // Se não está carregando e a lista está vazia, não mostra nada
+        if (widget.store.topRatedMaterials.isEmpty) {
+          return const SizedBox();
+        }
+
         return Center(
           child: Container(
             width: AppConst.maxContainerWidth,
@@ -369,43 +296,35 @@ class _HomeBooksPageState extends State<HomeBooksPage> {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (widget.store.topRatedMaterials.isNotEmpty)
-                  AppText(
-                    text: 'Materiais mais bem avaliados',
-                    fontSize: 18,
-                    fontWeight: 'bold',
-                  ),
-                if (widget.store.topRatedMaterials.isNotEmpty)
-                  const SizedBox(
-                    height: 40,
-                  ),
+                AppText(
+                  text: 'Materiais mais bem avaliados',
+                  fontSize: 18,
+                  fontWeight: 'bold',
+                ),
+                const SizedBox(
+                  height: 40,
+                ),
                 SizedBox(
                   height: 300,
-                  child: Observer(builder: (context) {
-                    if (widget.store.topRatedMaterials.isEmpty) {
-                      return const SizedBox();
-                    }
-                    return ListView.builder(
-                      scrollDirection: Axis.horizontal,
-                      controller: widget.store.scrollController[0],
-                      itemCount: widget.store.topRatedMaterials.length,
-                      itemBuilder: (context, index) {
-                        var book = widget.store.topRatedMaterials[index];
-                        return InkWell(
-                            hoverColor: Colors.transparent,
-                            focusColor: Colors.transparent,
-                            highlightColor: Colors.transparent,
-                            onTap: () {
-                              widget.store.setSelectedBook(book);
-                              print("Book: ${book.title}");
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: widget.store.topRatedMaterials.length,
+                    itemBuilder: (context, index) {
+                      var book = widget.store.topRatedMaterials[index];
+                      return InkWell(
+                          hoverColor: Colors.transparent,
+                          focusColor: Colors.transparent,
+                          highlightColor: Colors.transparent,
+                          onTap: () {
+                            widget.store.setSelectedBook(book);
+                            print("Book: ${book.title}");
 
-                              Modular.to.pushNamed('/home/book/${book.id}',
-                                  arguments: book);
-                            },
-                            child: BookCard(book: book));
-                      },
-                    );
-                  }),
+                            Modular.to.pushNamed('/home/book/${book.id}',
+                                arguments: book);
+                          },
+                          child: BookCard(book: book));
+                    },
+                  ),
                 ),
                 const SizedBox(
                   height: 20,
@@ -417,8 +336,6 @@ class _HomeBooksPageState extends State<HomeBooksPage> {
             ),
           ),
         );
-
-        // return const SizedBox();
       },
     );
   }
